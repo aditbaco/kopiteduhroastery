@@ -1,34 +1,91 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Kopi Teduh Roastery
 
-## Getting Started
+The storefront for **Kopi Teduh Roastery**, a specialty coffee roastery in Poso, Sulawesi
+Tengah — a bilingual (Indonesian / English) catalog of single-origin lots with a cart that
+hands off to WhatsApp.
 
-First, run the development server:
+There is deliberately no online checkout and no payment integration. The cart lives in the
+browser; ordering opens WhatsApp with a pre-filled message, and shipping and payment are
+settled in the chat. That matches how the business already sells.
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Prisma 7 + MariaDB · Tailwind v4 ·
+MUI 7 (admin template only) · pnpm
+
+## Getting started
+
+Requires Node 20+, pnpm, and a MySQL/MariaDB server (Laragon locally).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install                 # runs build:icons on postinstall
+cp .env.example .env         # then set DATABASE_URL
+pnpm db:migrate              # create the schema
+pnpm db:seed                 # load the catalog
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000> — `/` redirects to `/id`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+| Command | Does |
+| --- | --- |
+| `pnpm dev` | Dev server with turbopack |
+| `pnpm build` / `pnpm start` | Production build / serve |
+| `pnpm lint` / `pnpm lint:fix` | ESLint |
+| `pnpm format` | Prettier over `src/**` |
+| `pnpm build:icons` | Rebuild the bundled icon CSS |
+| `pnpm db:generate` | `prisma generate` |
+| `pnpm db:migrate` | `prisma migrate dev` |
+| `pnpm db:seed` | Reseed the catalog |
+| `pnpm db:studio` | Prisma Studio |
 
-## Learn More
+`pnpm db:reset` drops and recreates the database — don't point it at anything real.
 
-To learn more about Next.js, take a look at the following resources:
+No test framework is configured; verification is `pnpm build` + `pnpm lint`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | MySQL/MariaDB connection string |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Order destination, international format, no `+` or dashes |
+| `BASEPATH` | Optional Next.js base path |
+| `NEXT_PUBLIC_APP_URL` | Declared, currently unused |
 
-## Deploy on Vercel
+## Layout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/app/[lang]/**            storefront pages (id / en)
+src/components/storefront/** storefront components
+src/contexts/cartContext.tsx localStorage cart
+src/dictionaries/**          bilingual UI strings
+src/libs/                    prisma client + cached product queries
+src/utils/                   currency, images, WhatsApp message builder
+src/configs/shopConfig.ts    business details
+prisma/                      schema, migrations, seed
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+src/@core, @layouts, @menu   Vuexy admin template (vendor code — don't edit)
+src/app/(dashboard)/**       template pages: /home, /about
+src/app/(blank-layout-pages) template page: /login (no auth behind it)
+```
+
+The repo holds two apps in one tree: the storefront, and the Vuexy MUI admin template it was
+scaffolded from — most of which is untouched and unused.
+
+## Documentation
+
+Detailed reference docs live in [`ref/`](ref/README.md): architecture, data model,
+storefront, i18n, styling, admin template, and conventions. [`CLAUDE.md`](CLAUDE.md) is the
+short orientation for AI coding agents.
+
+## Status
+
+Pre-launch. Seed prices, tasting notes, producer details and product photography are
+placeholders pending client confirmation, and `/login` is a view without authentication. See
+[ref/conventions.md](ref/conventions.md#known-open-items-before-launch).
+
+## License
+
+Private. Built on the Vuexy MUI Next.js admin template under its commercial license.

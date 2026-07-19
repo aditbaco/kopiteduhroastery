@@ -1,78 +1,101 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) when working in this repository.
 
 ## What this is
 
-A Next.js 16 (App Router) + React 19 + MUI 7 app built on the **Vuexy MUI Next.js admin template** (commercial license, `package.json` still carries the template's name/version). The template scaffolding has been stripped down to two pages (`/home`, `/about`) plus a login view — most of the surface area is still unmodified template infrastructure.
+**Kopi Teduh Roastery** — a bilingual (Indonesian / English) storefront for a coffee
+roastery in Poso, Sulawesi Tengah. It is a catalog plus a cart that hands off to WhatsApp:
+there is deliberately **no checkout, no payment, and no `Order` table**. The cart lives in
+`localStorage`, and the WhatsApp message is the order record.
 
-Package manager is **pnpm** (`pnpm-lock.yaml`, `.npmrc` with `shamefully-hoist` + `node-linker=hoisted`).
+Stack: Next.js 16 (App Router) · React 19 · Prisma 7 + MariaDB · MUI 7 · Tailwind v4 · pnpm.
+
+The project was scaffolded from the **Vuexy MUI admin template**, most of which is still
+present, unmodified, and unused by the storefront. Two apps share one tree — know which one
+you're editing.
+
+## Reference docs
+
+Detail lives in `ref/`. Read the relevant file before non-trivial work.
+
+| File | Read it when |
+| --- | --- |
+| [ref/architecture.md](ref/architecture.md) | Orienting; anything touching routing, the root layout, or static rendering |
+| [ref/data-model.md](ref/data-model.md) | Touching Prisma, the schema, migrations, seed, or data fetching |
+| [ref/storefront.md](ref/storefront.md) | Working on pages, storefront components, the cart, or checkout |
+| [ref/i18n.md](ref/i18n.md) | Adding or changing any user-facing string |
+| [ref/styling.md](ref/styling.md) | Writing CSS, adding an icon, adding an image or font |
+| [ref/admin-template.md](ref/admin-template.md) | Touching `@core`/`@layouts`/`@menu`, the MUI theme, or building an admin |
+| [ref/conventions.md](ref/conventions.md) | Before committing; lint rules that fail the build |
 
 ## Commands
 
 ```bash
-pnpm dev            # dev server with turbopack (localhost:3000, / redirects to /home)
+pnpm dev            # dev server with turbopack (:3000, / redirects to /id)
 pnpm build          # production build
-pnpm start          # serve production build
-pnpm lint           # eslint over .js,.jsx,.ts,.tsx
-pnpm lint:fix
+pnpm lint           # eslint — enforces more than formatting, see ref/conventions.md
 pnpm format         # prettier over src/**
-pnpm build:icons    # regenerate src/assets/iconify-icons/generated-icons.css
-pnpm clean          # rm -rf .next
+pnpm build:icons    # regenerate generated-icons.css (runs on postinstall)
+
+pnpm db:generate    # prisma generate — after any schema.prisma edit
+pnpm db:migrate     # prisma migrate dev
+pnpm db:seed        # tsx prisma/seed.ts
+pnpm db:studio      # prisma studio
 ```
 
-There is no test framework configured. `build:icons` runs automatically on `postinstall`.
+No test framework is configured. Verification = `pnpm build` + `pnpm lint` + clicking
+through routes.
 
-## Architecture
+**`pnpm db:reset` drops the database.** Per the global instructions, do not run it, or any
+other destructive DB command, without asking.
 
-### Layered directories — respect the boundary
+## The things that will bite you
 
-`src/@core`, `src/@layouts`, `src/@menu` are **vendor template code**. Editing them makes template upgrades painful. Application code belongs in `src/app`, `src/components`, `src/views`, `src/configs`, `src/data`.
+**Storefront static rendering is load-bearing and fragile.** Every storefront page is
+prerendered at build time, including DB-backed ones. `src/app/layout.tsx` was deliberately
+stripped of dynamic APIs to allow this — adding a cookie or header read there opts the whole
+storefront into dynamic rendering. Per-locale `<html lang>` is set by an inline script in
+`[lang]/layout.tsx` for the same reason.
 
-- `@core` — MUI theme (`@core/theme/*` per-component overrides), settings context, shared UI primitives, server helpers.
-- `@layouts` — `VerticalLayout` / `HorizontalLayout` / `LayoutWrapper` shells.
-- `@menu` — the navigation menu engine (vertical + horizontal), its contexts, styles, and SCSS-ish CSS modules.
-- `@views` — page-level compositions rendered by thin `app/**/page.tsx` files.
+**Prisma 7 is not Prisma 5.** The generator is `prisma-client` (output to
+`src/generated/prisma`, gitignored) — import from `@/generated/prisma/client`, not
+`@prisma/client`. The datasource block has **no `url`**; the connection string lives in
+`prisma.config.ts`. A driver adapter (`@prisma/adapter-mariadb`) is **required** when
+constructing the client.
 
-Path aliases in `tsconfig.json`: `@/*`, `@core/*`, `@layouts/*`, `@menu/*`, `@assets/*`, `@components/*`, `@configs/*`, `@views/*`.
+**The admin theme is controlled by a cookie, not by code.** Changing `mode`, `skin`,
+`semiDark`, `layout` or `contentWidth` in `src/configs/themeConfig.ts` has no visible effect
+until the settings cookie is cleared. Details in
+[ref/admin-template.md](ref/admin-template.md).
 
-### Route groups
+**Icons are CSS classes, bundled at build time.** A new icon must be added to the `icons`
+array in `src/assets/iconify-icons/bundle-icons-css.ts` followed by `pnpm build:icons` — an
+unbundled class silently renders nothing.
 
-- `src/app/(dashboard)/` — pages wrapped in the full layout (navigation, navbar, footer, customizer).
-- `src/app/(blank-layout-pages)/` — chrome-less pages (login).
-- `src/app/[...not-found]/` — catch-all 404.
+**Logical properties are enforced.** Write `is-full`, `bs-10`, `mli-`, `plb-`, never `w-`,
+`h-`, `ml-`, `pt-`.
 
-`next.config.ts` permanently redirects `/` → `/home` and honors a `BASEPATH` env var (see `.env.example`).
+**Don't edit `src/@core`, `src/@layouts`, `src/@menu`.** Vendor template code; edits make
+upgrades painful. Application code belongs in `src/app`, `src/components`, `src/views`,
+`src/configs`, `src/data`, `src/libs`, `src/utils`, `src/contexts`, `src/dictionaries`.
 
-### Theme + settings flow (the non-obvious part)
+## Storefront conventions
 
-Theme state lives in a **cookie**, not in code. `themeConfig.settingsCookieName` names it; `@core/utils/serverHelpers.ts` (`server-only`) reads it in Server Components.
+- Route segments stay **Indonesian in both locales** (`koleksi`, `keranjang`, `kopi`,
+  `tentang`). English gets translated content, not translated URLs.
+- Server components fetch and translate; client components receive `dict` and `lang` as
+  props. There is no translation hook or context.
+- UI strings live in `src/dictionaries/id.ts` (source of truth) and `en.ts` (typed against
+  it — a missing key is a compile error). Long-form page copy does **not** go there; see
+  [ref/i18n.md](ref/i18n.md).
+- Database display strings go through `pickLocalized(lang, base, translated)` — never read
+  `nameEn` directly. Indonesian columns are required, English ones nullable.
+- Prices are integer rupiah; format with `formatIdr`.
+- Storefront CSS is scoped under a `.teduh` wrapper with `teduh-` prefixed classes.
 
-Flow: `app/layout.tsx` reads `getSystemMode()` for `InitColorSchemeScript` → `(dashboard)/layout.tsx` and `components/Providers.tsx` read mode/settings from cookie → `VerticalNavProvider` → `SettingsProvider` → `components/theme/index.tsx` builds the MUI theme by `deepmerge`-ing `@core/theme` with the runtime primary color and re-creating it whenever `primaryColor`/`skin`/mode change.
+## Not yet done
 
-**Consequence:** changing `mode`, `skin`, `semiDark`, `layout`, or the `contentWidth` fields in `src/configs/themeConfig.ts` has no visible effect until the settings cookie is cleared or reset via the Customizer — the cookie wins. Other fields in that file apply immediately.
-
-To customize the theme, write overrides in `src/components/theme/mergedTheme.ts` (merges over the core theme) rather than editing `@core/theme` or using `userTheme.ts` (a from-scratch replacement, discouraged by the template).
-
-### Styling
-
-Tailwind v4 (CSS-first config in `src/app/globals.css` via `@theme`) coexists with MUI. Tailwind color/radius tokens are wired to MUI CSS variables (`--color-primary: var(--primary-color)`, `--radius-md: var(--mui-shape-customBorderRadius-md)`, etc.), so Tailwind utilities automatically follow the active MUI theme and color scheme. Dark mode is driven by MUI's `data` color-scheme selector, not Tailwind's `dark:`.
-
-`tailwindcss-logical` is in use and stylelint enforces `liberty/use-logical-spec` — write **logical properties** (`is-full`, `bs-10`, `mli-`, `plb-`) not `w-`/`h-`/`ml-`/`pt-`.
-
-### Icons
-
-Icons are CSS classes (`<i className='tabler-arrow-up' />`), not components. The set is bundled at build time by `src/assets/iconify-icons/bundle-icons-css.ts` into `generated-icons.css`. **To use a new icon you must add it to the `icons` array in that script and run `pnpm build:icons`** — an unbundled class silently renders nothing.
-
-### Navigation
-
-Menus are data, not JSX: edit `src/data/navigation/verticalMenuData.tsx` and `horizontalMenuData.tsx` (keep both in sync). `src/components/GenerateMenu.tsx` walks that data and renders sections / submenus / items; `prefix`/`suffix` entries shaped like `ChipProps` (i.e. having a `label`) are auto-rendered as a `CustomChip`.
-
-## Code style
-
-Prettier: no semicolons, single quotes (JSX included), no trailing commas, 120 cols, arrow parens avoided.
-
-ESLint enforces beyond formatting — these will fail `pnpm lint`:
-- `@typescript-eslint/consistent-type-imports` — type-only imports must use `import type`.
-- `import/order` with grouped, blank-line-separated import blocks. The codebase convention is a `// React Imports` / `// MUI Imports` / `// Third-party Imports` / `// Type Imports` / `// Component Imports` / `// Util Imports` comment above each group — follow it.
-- `newline-before-return`, `lines-around-comment`, and `padding-line-between-statements` (blank line after const/let/var groups, around functions and multiline blocks).
+Seed data, product photography and some shop details are **placeholders awaiting client
+confirmation**; `/login` has no authentication behind it. See the open items list in
+[ref/conventions.md](ref/conventions.md#known-open-items-before-launch).
