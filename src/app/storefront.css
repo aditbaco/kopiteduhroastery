@@ -1,0 +1,522 @@
+/*
+ * Kopi Teduh storefront — "Shade & Stone"
+ *
+ * Scoped to the storefront so it never collides with the Vuexy admin theme,
+ * which keeps its own MUI tokens. Everything here hangs off .teduh.
+ *
+ * Palette: roast-brown ground, bone paper, ochre accent. Warm neutrals only —
+ * no pure black or pure white anywhere, which is what keeps it feeling like
+ * paper and soil rather than a default UI.
+ */
+
+.teduh {
+  /* Core palette */
+  --teduh-ink: #2b1a12; /* roast brown — text and dark grounds */
+  --teduh-ink-soft: #5c463a; /* secondary text on light */
+  --teduh-paper: #f4efe6; /* bone — page ground */
+  --teduh-paper-warm: #ebe3d6; /* slightly deeper bone for cards */
+  --teduh-ochre: #c9711f; /* accent — CTAs, rules, prices */
+  --teduh-ochre-deep: #a45816; /* hover/pressed */
+  --teduh-moss: #6b7355; /* secondary accent — shade/foliage */
+  --teduh-line: #d8cdbc; /* hairlines on paper */
+
+  /* Type scale — clamp() so it breathes between 375px and desktop without
+     a pile of breakpoints. Mobile-first: the small end is the real design. */
+  --teduh-display: clamp(2.75rem, 11vw, 6.5rem);
+  --teduh-h1: clamp(2.1rem, 8vw, 4rem);
+  --teduh-h2: clamp(1.6rem, 5.5vw, 2.75rem);
+  --teduh-h3: clamp(1.25rem, 4vw, 1.75rem);
+  --teduh-body: 1rem; /* 16px floor on mobile — never smaller */
+  --teduh-small: 0.875rem;
+  --teduh-micro: 0.75rem;
+
+  /* Corner radii. Nothing in the storefront renders a square corner — the
+     palette is warm and organic, and hard 90° corners fought it. Declared as
+     tokens so the whole set can be softened or tightened in one place. */
+  --teduh-radius-sm: 10px; /* buttons, inputs, small chips */
+  --teduh-radius: 18px; /* cards, framed media, panels */
+  --teduh-radius-lg: 28px; /* large feature imagery */
+
+  /* Z-index scale, declared once so nothing gets invented ad hoc */
+  --z-sticky: 10;
+  --z-header: 20;
+  --z-drawer: 30;
+  --z-modal: 50;
+
+  background-color: var(--teduh-paper);
+  color: var(--teduh-ink);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--teduh-body);
+  line-height: 1.65;
+
+  /* Kills the 300ms tap delay on mobile without a JS shim */
+  touch-action: manipulation;
+}
+
+/* globals.css imports only Tailwind's theme + utilities layers, not preflight,
+   so no reset is applied anywhere and UA styles leak through. Lists kept their
+   bullets and inline padding; buttons kept their grey chrome background. Reset
+   both once here rather than patching each component.
+   Components that want a filled button still set background-color inline or via
+   a utility, which wins over this. */
+.teduh ul,
+.teduh ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.teduh button {
+  background-color: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  border-radius: var(--teduh-radius-sm);
+}
+
+/* ---------------------------------------------------------------------------
+   Rounded corners, applied globally rather than per component so no square
+   corner can sneak back in.
+   --------------------------------------------------------------------------- */
+
+/* Framed media. The container clips the fill image; the radius on the image
+   itself is belt-and-braces for Safari, which can leak a corner past an
+   overflow-hidden ancestor when the child is transformed (our cards scale
+   their image on hover). */
+.teduh-media {
+  border-radius: var(--teduh-radius);
+  overflow: hidden;
+}
+
+.teduh-media-lg {
+  border-radius: var(--teduh-radius-lg);
+  overflow: hidden;
+}
+
+.teduh-media img,
+.teduh-media-lg img {
+  border-radius: inherit;
+}
+
+/* Panels and any surface carrying its own background */
+.teduh-panel {
+  border-radius: var(--teduh-radius);
+}
+
+/* CTAs that are anchors rather than buttons, so the button rule misses them */
+.teduh-btn {
+  border-radius: var(--teduh-radius-sm);
+}
+
+.teduh textarea,
+.teduh input,
+.teduh select {
+  border-radius: var(--teduh-radius-sm);
+}
+
+/* Circular avatars must stay fully round — never overridden by the above. */
+.teduh .rounded-full {
+  border-radius: 9999px;
+}
+
+/* Social links. 44px hit area to meet the touch minimum even though the glyph
+   is 18px, with the ring drawn at 40px so the row still reads tight. */
+.teduh-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 9999px;
+  color: var(--teduh-paper);
+  opacity: 0.72;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.teduh-social::before {
+  content: '';
+  position: absolute;
+  inline-size: 40px;
+  block-size: 40px;
+  border: 1px solid rgb(244 239 230 / 0.22);
+  border-radius: 9999px;
+  transition: border-color 0.2s ease;
+}
+
+.teduh-social {
+  position: relative;
+}
+
+.teduh-social:hover {
+  opacity: 1;
+  color: var(--teduh-ink);
+}
+
+.teduh-social:hover::before {
+  background-color: var(--teduh-paper);
+  border-color: var(--teduh-paper);
+}
+
+/* Keep the glyph above the filled ring on hover */
+.teduh-social svg {
+  position: relative;
+  z-index: 1;
+}
+
+.teduh-display,
+.teduh h1,
+.teduh h2,
+.teduh h3 {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.teduh-display {
+  font-size: var(--teduh-display);
+}
+
+/* Letterspaced micro-label — used for ARABIKA/ROBUSTA, section eyebrows.
+   Uppercase needs tracking to stay legible at small sizes. */
+.teduh-eyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--teduh-micro);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teduh-ink-soft);
+}
+
+/* Hairline rule that reads as a drawn line rather than a border */
+.teduh-rule {
+  block-size: 1px;
+  background: var(--teduh-line);
+  border: 0;
+}
+
+/* Paper grain. Sits above the ground, below content, and is purely decorative
+   so it is hidden from assistive tech and skipped when motion is reduced. */
+.teduh-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* Focus ring: ochre on paper, offset so it never crowds the glyphs. Applied
+   via :focus-visible so it shows for keyboard users but not on mouse click. */
+.teduh :focus-visible {
+  outline: 2px solid var(--teduh-ochre);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Every interactive element clears the 44px touch minimum. Declared once here
+   rather than repeated per component. */
+.teduh-tap {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------------------------
+   Header
+   Transparent only while resting over the hero; fully opaque the moment the
+   page scrolls or the drawer opens. A translucent bar let page content read
+   through the type, which looked broken rather than layered.
+   --------------------------------------------------------------------------- */
+
+.teduh-header {
+  background-color: transparent;
+  border-block-end: 1px solid transparent;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.teduh-header[data-solid='true'] {
+  background-color: var(--teduh-paper);
+  border-block-end-color: var(--teduh-line);
+  box-shadow: 0 1px 16px rgb(43 26 18 / 0.06);
+}
+
+/* Hamburger: two rules that rotate into a close mark. Fewer strokes reads more
+   considered than the default three, and the morph makes the state obvious
+   without a second icon. */
+.teduh-burger {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+}
+
+.teduh-burger span {
+  display: block;
+  inline-size: 22px;
+  block-size: 1.5px;
+  border-radius: 2px;
+  background-color: var(--teduh-ink);
+  transition:
+    transform 0.28s cubic-bezier(0.4, 0.1, 0.2, 1),
+    opacity 0.2s ease;
+}
+
+.teduh-burger[data-open='true'] span:first-child {
+  transform: translateY(3.75px) rotate(45deg);
+}
+
+.teduh-burger[data-open='true'] span:last-child {
+  transform: translateY(-3.75px) rotate(-45deg);
+}
+
+/* ---------------------------------------------------------------------------
+   Mobile drawer
+   --------------------------------------------------------------------------- */
+
+.teduh-scrim {
+  position: fixed;
+  inset: 0;
+  /* Below the header (--z-header: 20) but above page content, so the bar and
+     drawer stay untinted while everything behind them dims. */
+  z-index: 15;
+  background-color: rgb(43 26 18 / 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.teduh-scrim[data-open='true'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Collapsed via grid-template-rows so it animates from nothing to its natural
+   height — no magic max-height number to outgrow when a nav item is added. */
+.teduh-drawer {
+  display: grid;
+  grid-template-rows: 0fr;
+  background-color: var(--teduh-paper);
+  border-block-start: 1px solid transparent;
+  overflow: hidden;
+  transition:
+    grid-template-rows 0.3s cubic-bezier(0.3, 0.8, 0.3, 1),
+    border-color 0.3s ease;
+}
+
+.teduh-drawer > * {
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.teduh-drawer[data-open='true'] {
+  grid-template-rows: 1fr;
+  border-block-start-color: var(--teduh-line);
+}
+
+.teduh-drawer li + li {
+  border-block-start: 1px solid var(--teduh-line);
+}
+
+.teduh-drawer-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-block-size: 56px;
+  padding-inline: 1.25rem;
+  font-size: 1.0625rem;
+  color: var(--teduh-ink);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.teduh-drawer-item svg {
+  opacity: 0.35;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.teduh-drawer-item:hover {
+  background-color: var(--teduh-paper-warm);
+}
+
+.teduh-drawer-item:hover svg {
+  opacity: 0.7;
+  transform: translateX(2px);
+}
+
+/* Active state marked by an ochre bar as well as colour, so it does not rely
+   on hue alone. */
+.teduh-drawer-item[data-active='true'] {
+  color: var(--teduh-ochre);
+  font-weight: 600;
+}
+
+.teduh-drawer-item[data-active='true']::before {
+  content: '';
+  position: absolute;
+  inset-block: 12px;
+  inset-inline-start: 0;
+  inline-size: 3px;
+  border-radius: 0 2px 2px 0;
+  background-color: var(--teduh-ochre);
+}
+
+.teduh-drawer-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-block-size: 52px;
+  margin: 1rem 1.25rem 1.25rem;
+  border-radius: var(--teduh-radius-sm);
+  font-size: var(--teduh-small);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--teduh-paper);
+  background-color: var(--teduh-ink);
+  transition: background-color 0.2s ease;
+}
+
+.teduh-drawer-cta:hover {
+  background-color: var(--teduh-ochre-deep);
+}
+
+/* Staggered reveal on load. One orchestrated moment rather than scattered
+   micro-animations — and it degrades to simply "visible" when motion is
+   reduced, which is the correct fallback (not a faster animation). */
+@keyframes teduh-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.teduh-rise {
+  animation: teduh-rise 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teduh *,
+  .teduh *::before,
+  .teduh *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Cart hover preview ------------------------------------------------------ */
+
+/* Anchored to the icon's wrapper, inset-inline-end so it never runs off the
+   right edge on a 1200px container. Pointer-events are off while closed so the
+   collapsed panel cannot swallow clicks meant for the header behind it. */
+.teduh .teduh-cart-pop {
+  position: absolute;
+  inset-block-start: calc(100% + 14px);
+  inset-inline-end: 0;
+  inline-size: 320px;
+  background-color: var(--teduh-paper);
+  border: 1px solid var(--teduh-line);
+  border-radius: var(--teduh-radius);
+  box-shadow: 0 18px 40px -18px rgb(43 26 18 / 0.35);
+  z-index: var(--z-drawer);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s;
+}
+
+.teduh .teduh-cart-pop[data-open='true'] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Invisible bridge across the gap between icon and panel — without it the
+   pointer leaves the wrapper mid-travel and the panel closes under the cursor. */
+.teduh .teduh-cart-pop::before {
+  content: '';
+  position: absolute;
+  inset-block-start: -14px;
+  inset-inline: 0;
+  block-size: 14px;
+}
+
+/* Information pages ------------------------------------------------------- */
+
+/* Counter-numbered steps: the marker is set in the display face and ochre,
+   which list-style markers cannot be styled into across browsers. */
+.teduh .teduh-steps {
+  counter-reset: teduh-step;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.teduh .teduh-steps > li {
+  counter-increment: teduh-step;
+  position: relative;
+  padding-inline-start: 3rem;
+}
+
+.teduh .teduh-steps > li::before {
+  content: counter(teduh-step, decimal-leading-zero);
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: -0.1em;
+  font-family: var(--font-display), serif;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--teduh-ochre);
+}
+
+.teduh .teduh-points {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.teduh .teduh-points > li {
+  position: relative;
+  padding-inline-start: 1.25rem;
+  line-height: 1.75;
+}
+
+.teduh .teduh-points > li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0.7em;
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background-color: var(--teduh-ochre);
+}

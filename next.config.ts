@@ -1,0 +1,31 @@
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  basePath: process.env.BASEPATH,
+  images: {
+    // Whitelisted rather than wildcarded — next/image will proxy any host listed
+    // here, so keep this list to hosts we actually use.
+    remotePatterns: [
+      // Product photography placeholders until the client supplies real shots.
+      { protocol: 'https', hostname: 'placehold.co' },
+
+      // Decorative/atmosphere imagery.
+      { protocol: 'https', hostname: 'images.unsplash.com' }
+    ]
+  },
+  redirects: async () => {
+    return [
+      {
+        source: '/',
+        // Indonesian is the default locale. Not `permanent` — if a locale
+        // negotiation step is added later, a cached 308 would be painful to
+        // undo in visitors' browsers.
+        destination: '/id',
+        permanent: false,
+        locale: false
+      }
+    ]
+  }
+}
+
+export default nextConfig

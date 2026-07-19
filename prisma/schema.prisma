@@ -1,0 +1,168 @@
+// Kopi Teduh Roastery — product catalog
+//
+// Prices are stored as plain integers in rupiah (IDR has no minor unit),
+// which sidesteps Decimal/float rounding entirely.
+//
+// Bilingual: Indonesian is the source of truth and is always required. English
+// fields are nullable and the storefront falls back to Indonesian when one is
+// empty, so the client can add translations gradually instead of all at once.
+//
+// There is deliberately no Order model: checkout hands off to WhatsApp, so the
+// cart lives in browser state and never reaches the database.
+//
+// Prisma 7: the connection URL lives in prisma.config.ts, not here.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Species {
+  ARABICA
+  ROBUSTA
+}
+
+enum Process {
+  WASHED
+  NATURAL
+  HONEY
+  WINE
+  WET_HULLED // giling basah — the dominant Indonesian method
+}
+
+enum RoastLevel {
+  LIGHT
+  MEDIUM_LIGHT
+  MEDIUM
+  MEDIUM_DARK
+  DARK
+}
+
+model Product {
+  id      Int     @id @default(autoincrement())
+  slug    String  @unique @db.VarChar(191)
+  species Species
+
+  name   String  @db.VarChar(191)
+  nameEn String? @db.VarChar(191)
+
+  // Origin. `origin` is the free-text estate/village line shown on the product
+  // page ("Lore Betue, Lore Wuasa & Lembah Besoa"); regency/province stay
+  // structured so the storefront can group and filter by area. All three are
+  // proper nouns and are not translated.
+  origin      String @db.VarChar(191)
+  regency     String @db.VarChar(191)
+  province    String @default("Sulawesi Tengah") @db.VarChar(191)
+  altitudeMin Int // mdpl (metres above sea level)
+  altitudeMax Int
+
+  process    Process
+  roastLevel RoastLevel
+
+  shortDesc   String? @db.VarChar(255) // one-liner for cards and listings
+  shortDescEn String? @db.VarChar(255)
+  description String  @db.Text // full copy for the product page
+  descriptionEn String? @db.Text
+
+  producer     String? @db.VarChar(191)
+  partnerSince Int? // year the roastery began buying from this producer
+
+  heroImage String? @db.VarChar(255)
+
+  isActive   Boolean @default(true) // soft-hide instead of deleting
+  isFeatured Boolean @default(false)
+  sortOrder  Int     @default(0)
+
+  varietals    ProductVarietal[]
+  tastingNotes TastingNote[]
+  variants     ProductVariant[]
+  images       ProductImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@index([species])
+}
+
+// Varietals are shared across products (Sigararutang appears in most of the
+// Arabica lots), so this is many-to-many rather than a repeated string.
+model Varietal {
+  id       Int               @id @default(autoincrement())
+  slug     String            @unique @db.VarChar(191)
+  name     String            @db.VarChar(191)
+  nameEn   String?           @db.VarChar(191)
+  products ProductVarietal[]
+}
+
+model ProductVarietal {
+  productId  Int
+  varietalId Int
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  varietal   Varietal @relation(fields: [varietalId], references: [id], onDelete: Cascade)
+
+  @@id([productId, varietalId])
+  @@index([varietalId])
+}
+
+// One-to-many rather than shared vocabulary: notes are phrased per lot and are
+// ordered, so an admin can reorder them without touching other products.
+model TastingNote {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  label     String  @db.VarChar(191)
+  labelEn   String? @db.VarChar(191)
+  sortOrder Int     @default(0)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+// A purchasable weight. Price lives here, not on Product — this is the row an
+// admin edits when production costs move, which is the expected common case.
+model ProductVariant {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  weightG   Int // 200, 500, 1000
+  priceIdr  Int // rupiah, no decimals
+  sku       String  @unique @db.VarChar(64)
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, weightG])
+  @@index([productId])
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  url       String  @db.VarChar(255)
+  alt       String? @db.VarChar(255)
+  altEn     String? @db.VarChar(255)
+  sortOrder Int     @default(0)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+// Global lookup, not per-product: every coffee is offered in every grind, and
+// grind does not affect price. The customer's choice is passed through to the
+// WhatsApp message, so this table only needs to drive a <select>.
+model GrindOption {
+  id        Int     @id @default(autoincrement())
+  slug      String  @unique @db.VarChar(191)
+  name      String  @db.VarChar(191)
+  nameEn    String? @db.VarChar(191)
+  note      String? @db.VarChar(255)
+  noteEn    String? @db.VarChar(255)
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+}
