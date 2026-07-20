@@ -111,7 +111,7 @@ const CartView = ({ lang, dict }: Props) => {
             >
               <div
                 className='relative shrink-0 teduh-media'
-                style={{ inlineSize: 84, aspectRatio: '4 / 5', backgroundColor: 'var(--teduh-paper-warm)' }}
+                style={{ inlineSize: 84, aspectRatio: '1 / 1', backgroundColor: 'var(--teduh-paper-warm)' }}
               >
                 {item.image && (
                   <Image

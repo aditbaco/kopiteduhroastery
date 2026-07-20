@@ -80,9 +80,10 @@ const ProductPage = async (props: { params: Promise<{ lang: Lang; slug: string }
       <div className='mbs-6 grid gap-10 md:gap-14 md:grid-cols-2'>
         {/* Image column */}
         <div>
+          {/* 1:1, matching the catalog card and the admin preview. */}
           <div
             className='relative teduh-media-lg'
-            style={{ aspectRatio: '4 / 5', backgroundColor: 'var(--teduh-paper-warm)' }}
+            style={{ aspectRatio: '1 / 1', backgroundColor: 'var(--teduh-paper-warm)' }}
           >
             <Image
               src={heroSrc}

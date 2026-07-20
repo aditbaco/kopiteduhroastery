@@ -39,10 +39,9 @@ const ProductCard = ({ product, lang, dict, priority = false }: Props) => {
       className='group flex flex-col'
       style={{ color: 'inherit', textDecoration: 'none' }}
     >
-      <div
-        className='relative teduh-media'
-        style={{ aspectRatio: '4 / 5', backgroundColor: 'var(--teduh-paper-warm)' }}
-      >
+      {/* 1:1 — the marketplace convention, and the species fallback art is
+          already a square PNG, so it sits in the frame without cropping. */}
+      <div className='relative teduh-media' style={{ aspectRatio: '1 / 1', backgroundColor: 'var(--teduh-paper-warm)' }}>
         <Image
           src={src}
           alt={name}

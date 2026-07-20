@@ -15,7 +15,9 @@
 const BG = 'EBE3D6'
 const FG = '5C463A'
 
-export const placeholderProduct = (label: string, w = 800, h = 1000) =>
+// Square by default — product frames are 1:1 everywhere (catalog card, detail
+// hero, cart, admin), so a portrait placeholder would be cropped on both edges.
+export const placeholderProduct = (label: string, w = 1000, h = 1000) =>
   `https://placehold.co/${w}x${h}/${BG}/${FG}/png?text=${encodeURIComponent(label)}&font=playfair-display`
 
 // Curated Unsplash photo IDs — coffee cherries, highland terrain, roasting,
