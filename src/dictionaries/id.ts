@@ -41,7 +41,7 @@ const id = {
     roast: 'Sangrai',
     producer: 'Petani',
     partnerSince: 'Bermitra sejak',
-    tastingNotes: 'Catatan Rasa',
+    tastingNotes: 'Taste Notes',
     weight: 'Berat',
     grind: 'Gilingan',
     qty: 'Jumlah',

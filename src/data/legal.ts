@@ -59,7 +59,7 @@ const guide: Record<Lang, LegalDoc> = {
           {
             title: 'Pilih kopi di halaman Koleksi',
             detail:
-              'Setiap kopi punya halaman sendiri berisi asal kebun, ketinggian, proses pascapanen, tingkat sangrai, dan catatan rasa. Kalau masih ragu, WhatsApp kami — kami bantu pilihkan sesuai alat seduh Anda.'
+              'Setiap kopi punya halaman sendiri berisi asal kebun, ketinggian, proses pascapanen, tingkat sangrai, dan taste notes. Kalau masih ragu, WhatsApp kami — kami bantu pilihkan sesuai alat seduh Anda.'
           },
           {
             title: 'Tentukan ukuran dan gilingan',
