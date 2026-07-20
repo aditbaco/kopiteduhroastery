@@ -1,88 +1,102 @@
 'use client'
 
-// React Imports
-import { useEffect, useRef } from 'react'
-import type { CSSProperties } from 'react'
+// Next Imports
+import Image from 'next/image'
 
 // Third-party Imports
 import styled from '@emotion/styled'
-
-// Type Imports
-import type { VerticalNavContextProps } from '@menu/contexts/verticalNavContext'
-
-// Component Imports
-import VuexyLogo from '@core/svg/Logo'
-
-// Config Imports
-import themeConfig from '@configs/themeConfig'
 
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
 import { useSettings } from '@core/hooks/useSettings'
 
-type LogoTextProps = {
-  isHovered?: VerticalNavContextProps['isHovered']
-  isCollapsed?: VerticalNavContextProps['isCollapsed']
-  transitionDuration?: VerticalNavContextProps['transitionDuration']
-  isBreakpointReached?: VerticalNavContextProps['isBreakpointReached']
-  color?: CSSProperties['color']
-}
+/*
+ * The brand art ships in two colourways — dark ink for light backgrounds, white
+ * for dark ones. Both are rendered and CSS picks between them rather than
+ * choosing `src` from a hook: the mode lives in a cookie the client reads after
+ * hydration, so a JS swap would paint the wrong logo first and flash.
+ *
+ * The hook is `[data-dark]` on <html>, which is what `colorSchemeSelector:
+ * 'data'` in components/theme/index.tsx actually emits — not the
+ * `data-mui-color-scheme` the MUI docs describe. Verified against the rendered
+ * DOM; light mode carries no attribute at all, hence the light-first default.
+ *
+ * This tracks the *page* scheme, so it would show the wrong colourway under
+ * themeConfig.semiDark (dark nav on a light page). semiDark is off.
+ */
+const Art = styled.span`
+  display: inline-flex;
+  align-items: center;
 
-const LogoText = styled.span<LogoTextProps>`
-  color: ${({ color }) => color ?? 'var(--mui-palette-text-primary)'};
-  font-size: 1.375rem;
-  line-height: 1.09091;
-  font-weight: 700;
-  letter-spacing: 0.25px;
-  transition: ${({ transitionDuration }) =>
-    `margin-inline-start ${transitionDuration}ms ease-in-out, opacity ${transitionDuration}ms ease-in-out`};
+  .logo-on-light {
+    display: block;
+  }
+  .logo-on-dark {
+    display: none;
+  }
 
-  ${({ isHovered, isCollapsed, isBreakpointReached }) =>
-    !isBreakpointReached && isCollapsed && !isHovered
-      ? 'opacity: 0; margin-inline-start: 0;'
-      : 'opacity: 1; margin-inline-start: 12px;'}
+  [data-dark] & .logo-on-light {
+    display: none;
+  }
+  [data-dark] & .logo-on-dark {
+    display: block;
+  }
 `
 
-const Logo = ({ color }: { color?: CSSProperties['color'] }) => {
-  // Refs
-  const logoTextRef = useRef<HTMLSpanElement>(null)
+// Intrinsic sizes, read off the files — the two lockup exports were rendered at
+// different scales, so they cannot share one width/height pair.
+const ART = {
+  mark: {
+    height: 32,
+    onLight: { src: '/images/logo/icon-dark.png', width: 571, height: 596 },
+    onDark: { src: '/images/logo/icon-white.png', width: 571, height: 596 }
+  },
+  lockup: {
+    height: 30,
+    onLight: { src: '/images/logo/lockup-dark.png', width: 560, height: 173 },
+    onDark: { src: '/images/logo/lockup-white.png', width: 720, height: 222 }
+  }
+} as const
 
+const Logo = () => {
   // Hooks
-  const { isHovered, transitionDuration, isBreakpointReached } = useVerticalNav()
+  const { isHovered, isBreakpointReached } = useVerticalNav()
   const { settings } = useSettings()
 
-  // Vars
-  const { layout } = settings
+  /*
+   * The collapsed rail is ~70px wide and the lockup is ~3.2:1, so it cannot fit
+   * — the icon mark stands in until the nav expands or the pointer hovers it.
+   * On small screens the nav is a full-width drawer, so the lockup fits there
+   * regardless of the collapsed setting.
+   */
+  const compact = !isBreakpointReached && settings.layout === 'collapsed' && !isHovered
 
-  useEffect(() => {
-    if (layout !== 'collapsed') {
-      return
-    }
+  const art = compact ? ART.mark : ART.lockup
 
-    if (logoTextRef && logoTextRef.current) {
-      if (!isBreakpointReached && layout === 'collapsed' && !isHovered) {
-        logoTextRef.current?.classList.add('hidden')
-      } else {
-        logoTextRef.current.classList.remove('hidden')
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHovered, layout, isBreakpointReached])
-
+  // `sizes` keeps Next from fetching the 3840w srcset candidate for art drawn
+  // 30px tall — that stalled the storefront header logo once already.
   return (
-    <div className='flex items-center'>
-      <VuexyLogo className='text-2xl text-primary' />
-      <LogoText
-        color={color}
-        ref={logoTextRef}
-        isHovered={isHovered}
-        isCollapsed={layout === 'collapsed'}
-        transitionDuration={transitionDuration}
-        isBreakpointReached={isBreakpointReached}
-      >
-        {themeConfig.templateName}
-      </LogoText>
-    </div>
+    <Art>
+      <Image
+        {...art.onLight}
+        alt='Kopi Teduh Roastery'
+        sizes='160px'
+        priority
+        className='logo-on-light'
+        style={{ height: art.height, width: 'auto' }}
+      />
+      {/* Same alt on both: `display: none` keeps the inactive one out of the
+          accessibility tree, so this names the link in dark mode without
+          double-announcing in light. */}
+      <Image
+        {...art.onDark}
+        alt='Kopi Teduh Roastery'
+        sizes='160px'
+        priority
+        className='logo-on-dark'
+        style={{ height: art.height, width: 'auto' }}
+      />
+    </Art>
   )
 }
 
