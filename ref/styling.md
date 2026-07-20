@@ -100,6 +100,27 @@ The storefront avoids this entirely — `SocialIcon.tsx` inlines its SVG glyphs.
 - `isSpeciesArt(src)` — decides `object-contain` vs `object-cover`
 - `EMPTY_CART_ART`
 
+### Product images are 1:1
+
+Every frame that renders a product photo is square, matching the marketplace
+convention (Shopee/Tokopedia) and the square species fallback art:
+
+| Frame | Where |
+| --- | --- |
+| Catalog card | `ProductCard.tsx` — `aspectRatio: '1 / 1'` |
+| Detail hero | `app/[lang]/kopi/[slug]/page.tsx` |
+| Cart line | `CartView.tsx` (84px), `CartMenu.tsx` (48px) |
+| Admin preview / thumb | `HeroImageField.tsx` (132px), `ProductsTable.tsx` (36px) |
+
+**Uploads are not resized.** The file is stored as supplied and the frames crop it
+with `object-fit: cover`, so a non-square photo loses its top and bottom. The upload
+hint says so. Normalising on write with `sharp` (already a Next dependency) is the
+option if that becomes a problem — centre-crop or pad, both in
+`libs/admin/storage/`.
+
+Decorative photography is *not* bound by this — the homepage block is 4:3 and the
+about-page portrait is 4:5.
+
 `next.config.ts` whitelists only `placehold.co` and `images.unsplash.com` in
 `images.remotePatterns`.
 

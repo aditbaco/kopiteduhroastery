@@ -10,6 +10,7 @@ short orientation; these files are the detail behind it.
 | [storefront.md](storefront.md) | Storefront pages, components, cart context, the WhatsApp checkout handoff |
 | [i18n.md](i18n.md) | The hand-rolled `[lang]` bilingual system, dictionary typing, DB-content fallback |
 | [styling.md](styling.md) | `storefront.css` design tokens vs. the Tailwind/MUI bridge, fonts, icons, images |
+| [admin-dashboard.md](admin-dashboard.md) | The admin auth, product CRUD, and image upload — read before touching admin code |
 | [admin-template.md](admin-template.md) | The Vuexy template layer, the theme-settings cookie, navigation data |
 | [conventions.md](conventions.md) | Commands, code style, the lint rules that actually fail builds |
 

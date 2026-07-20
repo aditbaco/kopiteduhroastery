@@ -87,7 +87,16 @@ the join), and images — all ordered by `sortOrder`.
 | `PRODUCTS_TAG` | The revalidation tag |
 | `ProductWithRelations`, `GrindOptionRecord` | Types inferred from the queries |
 
-There are no API routes and no server actions. Nothing writes to the database at runtime.
+There are no API routes. Writes happen only through the admin's Server Actions, which use
+separate uncached, unfiltered read layers (`src/libs/admin/products/read.ts`,
+`src/libs/admin/varietals/read.ts`) and transactional mutation layers, then invalidate
+`PRODUCTS_TAG`. `Product` and its children are edited at `/admin/products`; `Varietal` at
+`/admin/settings`. Every other model is still seed-only. See
+[admin-dashboard.md](admin-dashboard.md).
+
+> **Deleting a `Varietal` is guarded in code, not by the schema.** `ProductVarietal` has
+> `onDelete: Cascade` on both sides, so a raw delete would strip the varietal from every
+> product silently. `deleteVarietal()` refuses when the link count is non-zero.
 
 ## Migrations and seed
 
@@ -125,5 +134,7 @@ Copy `.env.example` to `.env`.
 | --- | --- |
 | `DATABASE_URL` | `prisma.config.ts`, `src/libs/prisma.ts`, `prisma/seed.ts` |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | `src/configs/shopConfig.ts` (falls back to `6285394376023`) |
+| `ADMIN_PASSWORD` | `src/libs/admin/auth/password.ts` |
+| `ADMIN_SESSION_SECRET` | `src/libs/admin/auth/config.ts` (≥32 chars, required) |
 | `BASEPATH` | `next.config.ts` |
 | `NEXT_PUBLIC_APP_URL` | Declared but not referenced anywhere in `src/` |

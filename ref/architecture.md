@@ -71,8 +71,11 @@ bilingual 404 — it re-imports the fonts and `storefront.css` itself so it stay
 | Route | File |
 | --- | --- |
 | `/home` | `src/app/(dashboard)/home/page.tsx` |
-| `/about` | `src/app/(dashboard)/about/page.tsx` |
 | `/login` | `src/app/(blank-layout-pages)/login/page.tsx` |
+| `/admin/products`, `/admin/products/new`, `/admin/products/[id]` | product CRUD |
+| `/admin/settings` | `src/app/(dashboard)/admin/settings/page.tsx` |
+
+`/about` was a template stub; it was removed when `/admin/settings` replaced it in the nav.
 
 `(dashboard)` pages get the full MUI shell (navigation, navbar, footer, customizer);
 `(blank-layout-pages)` are chrome-less.

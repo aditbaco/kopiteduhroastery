@@ -26,7 +26,8 @@ Detail lives in `ref/`. Read the relevant file before non-trivial work.
 | [ref/storefront.md](ref/storefront.md) | Working on pages, storefront components, the cart, or checkout |
 | [ref/i18n.md](ref/i18n.md) | Adding or changing any user-facing string |
 | [ref/styling.md](ref/styling.md) | Writing CSS, adding an icon, adding an image or font |
-| [ref/admin-template.md](ref/admin-template.md) | Touching `@core`/`@layouts`/`@menu`, the MUI theme, or building an admin |
+| [ref/admin-dashboard.md](ref/admin-dashboard.md) | Touching the admin, auth, product CRUD, or image upload |
+| [ref/admin-template.md](ref/admin-template.md) | Touching `@core`/`@layouts`/`@menu`, the MUI theme, or the nav data |
 | [ref/conventions.md](ref/conventions.md) | Before committing; lint rules that fail the build |
 
 ## Commands
@@ -94,8 +95,31 @@ upgrades painful. Application code belongs in `src/app`, `src/components`, `src/
 - Prices are integer rupiah; format with `formatIdr`.
 - Storefront CSS is scoped under a `.teduh` wrapper with `teduh-` prefixed classes.
 
+## Admin
+
+`/admin/products` (catalog editor) and `/admin/settings` (company placeholder + reference
+data) are password-protected and are the only parts of the app that write to the database.
+Three things there are easy to break and expensive to debug:
+
+**`src/proxy.ts` must stay in `src/`.** This project has a `src/` directory, so a
+root-level `proxy.ts` is silently ignored and every admin route becomes public. (Next 16
+renamed `middleware.ts` to `proxy.ts`; `proxy` always runs on the Node runtime, which is
+why the session code can use `node:crypto`.)
+
+**Client-supplied row ids are scoped by `productId`.** `variants` and `tastingNotes` arrive
+as client-controlled JSON, so updates use `updateMany({ where: { id, productId } })`. An
+unscoped `update({ where: { id } })` lets a forged id overwrite another product's rows.
+
+**Deleting a varietal is gated on its link count.** `ProductVarietal.varietal` is
+`onDelete: Cascade`, so an unguarded delete silently strips the varietal from every product
+using it. `deleteVarietal()` counts and deletes in one transaction; the disabled button in
+the UI is only a courtesy.
+
+Details, including the image-upload rules and the `updateTag` cache invalidation, in
+[ref/admin-dashboard.md](ref/admin-dashboard.md).
+
 ## Not yet done
 
 Seed data, product photography and some shop details are **placeholders awaiting client
-confirmation**; `/login` has no authentication behind it. See the open items list in
-[ref/conventions.md](ref/conventions.md#known-open-items-before-launch).
+confirmation**. Admin login has no rate limiting and no audit trail. See the open items
+list in [ref/conventions.md](ref/conventions.md#known-open-items-before-launch).

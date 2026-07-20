@@ -92,4 +92,6 @@ no trailing period, first line ≤72 characters.
 - Product photography is placeholder/stock; `placehold.co` and Unsplash should drop out of
   `images.remotePatterns` once real assets land ([styling.md](styling.md#images)).
 - `shopConfig.ts` carries a contradiction in opening hours (23:30 vs 21:30).
-- `/login` is a view with no authentication behind it.
+- The admin login has **no rate limiting**, and its single shared password means no audit
+  trail of who changed what ([admin-dashboard.md](admin-dashboard.md#known-gaps)).
+- `UserDropdown` still shows the template's placeholder identity and dead menu links.

@@ -27,13 +27,18 @@ there make template upgrades painful.
 
 ## Current state
 
-Three pages survive: `/home`, `/about` (both under the `(dashboard)` group with the full
-MUI shell) and `/login` (chrome-less, under `(blank-layout-pages)`). Login is a **view
-only** — there is no authentication, no session, and no admin write path to the database.
+`/home` is still a one-line template stub under the `(dashboard)` group. `/about` was
+another; it was deleted when `/admin/settings` took its place in the nav.
 
-An admin dashboard has been discussed but not built. If one is added, note that
-`src/libs/products.ts` already tags its cache `PRODUCTS_TAG` so writes can call
-`revalidateTag('products')` rather than triggering a rebuild.
+`/login` and the `(dashboard)` shell are now **real**: there is a working
+password-based session, a route gate in `src/proxy.ts`, a product CRUD editor at
+`/admin/products`, and a settings page at `/admin/settings`. See
+[admin-dashboard.md](admin-dashboard.md) — that is the file to read before touching admin
+code. The rest of this page covers the template mechanics underneath it.
+
+The template's own branding is gone from the shell: `components/layout/shared/Logo.tsx`
+renders the Kopi Teduh lockup (icon-only on the collapsed rail) and both `FooterContent`
+files carry the storefront's copyright line instead of the Pixinvent credits.
 
 ## The theme settings cookie — the non-obvious part
 
@@ -67,6 +72,10 @@ Menus are data, not JSX. Edit `src/data/navigation/verticalMenuData.tsx` and
 `horizontalMenuData.tsx` — **keep both in sync**. `src/components/GenerateMenu.tsx` walks
 that data and renders sections, submenus and items; `prefix` / `suffix` entries shaped like
 `ChipProps` (i.e. having a `label`) are auto-rendered as a `CustomChip`.
+
+This data-driven path shipped commented out in the template — the menus really rendered
+hardcoded `<MenuItem>` blocks, so editing the data files did nothing. It was activated when
+the admin dashboard was built, and the hardcoded blocks are gone.
 
 None of this drives the storefront header, which is a plain component with a hardcoded nav
 list.

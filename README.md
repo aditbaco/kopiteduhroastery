@@ -51,6 +51,8 @@ No test framework is configured; verification is `pnpm build` + `pnpm lint`.
 | --- | --- |
 | `DATABASE_URL` | MySQL/MariaDB connection string |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Order destination, international format, no `+` or dashes |
+| `ADMIN_PASSWORD` | Shared password for the admin dashboard |
+| `ADMIN_SESSION_SECRET` | Session cookie signing key, at least 32 characters |
 | `BASEPATH` | Optional Next.js base path |
 | `NEXT_PUBLIC_APP_URL` | Declared, currently unused |
 
@@ -66,9 +68,13 @@ src/utils/                   currency, images, WhatsApp message builder
 src/configs/shopConfig.ts    business details
 prisma/                      schema, migrations, seed
 
+src/app/(dashboard)/admin/** admin product CRUD + settings (the only DB write path)
+src/libs/admin/**            admin auth, storage, validation, mutations
+src/views/admin/**           admin forms, tables and settings panels
+src/proxy.ts                 admin route gate (must stay in src/)
+
 src/@core, @layouts, @menu   Vuexy admin template (vendor code — don't edit)
-src/app/(dashboard)/**       template pages: /home, /about
-src/app/(blank-layout-pages) template page: /login (no auth behind it)
+src/app/(dashboard)/home     remaining template stub
 ```
 
 The repo holds two apps in one tree: the storefront, and the Vuexy MUI admin template it was
@@ -80,10 +86,21 @@ Detailed reference docs live in [`ref/`](ref/README.md): architecture, data mode
 storefront, i18n, styling, admin template, and conventions. [`CLAUDE.md`](CLAUDE.md) is the
 short orientation for AI coding agents.
 
+## Admin
+
+Sign in at `/login` with `ADMIN_PASSWORD`.
+
+- **`/admin/products`** — add, edit and delete products with their variants, tasting
+  notes, varietals and photo.
+- **`/admin/settings`** — *Perusahaan* (placeholder; company details still live in
+  `src/configs/shopConfig.ts`) and *Referensi*, where the varietal vocabulary is managed.
+
+See [ref/admin-dashboard.md](ref/admin-dashboard.md).
+
 ## Status
 
 Pre-launch. Seed prices, tasting notes, producer details and product photography are
-placeholders pending client confirmation, and `/login` is a view without authentication. See
+placeholders pending client confirmation. See
 [ref/conventions.md](ref/conventions.md#known-open-items-before-launch).
 
 ## License
