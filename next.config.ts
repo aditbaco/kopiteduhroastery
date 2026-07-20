@@ -2,6 +2,14 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   basePath: process.env.BASEPATH,
+  experimental: {
+    // Server Actions cap request bodies at 1MB by default, which a product photo
+    // blows straight through. The admin caps uploads at 4MB (see
+    // src/libs/admin/storage/constraints.ts); the headroom here covers multipart
+    // overhead and the rest of the form fields riding along in the same request.
+    // Note this ceiling is global to every Server Action in the app.
+    serverActions: { bodySizeLimit: '8mb' }
+  },
   images: {
     // Whitelisted rather than wildcarded — next/image will proxy any host listed
     // here, so keep this list to hosts we actually use.
@@ -17,6 +25,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/',
+
         // Indonesian is the default locale. Not `permanent` — if a locale
         // negotiation step is added later, a cached 308 would be painful to
         // undo in visitors' browsers.

@@ -84,8 +84,10 @@ type ProductSeed = {
   isFeatured: boolean
   sortOrder: number
   varietals: string[]
+
   // [Indonesian, English]
   tastingNotes: [string, string][]
+
   // [weight in grams, price in rupiah]
   variants: [number, number][]
 }

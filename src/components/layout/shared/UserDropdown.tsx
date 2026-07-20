@@ -21,6 +21,9 @@ import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 
+// Action Imports
+import { logoutAction } from '@/app/(blank-layout-pages)/login/actions'
+
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
 
@@ -63,8 +66,8 @@ const UserDropdown = () => {
   }
 
   const handleUserLogout = async () => {
-    // Redirect to login page
-    router.push('/login')
+    // Clears the session cookie server-side, then redirects to /login.
+    await logoutAction()
   }
 
   return (
