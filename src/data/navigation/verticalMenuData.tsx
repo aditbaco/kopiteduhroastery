@@ -1,6 +1,7 @@
 // Type Imports
 import type { VerticalMenuDataType } from '@/types/menuTypes'
 
+// Keep in sync with horizontalMenuData.tsx.
 const verticalMenuData = (): VerticalMenuDataType[] => [
   {
     label: 'Home',
@@ -8,9 +9,14 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
     icon: 'tabler-smart-home'
   },
   {
-    label: 'About',
-    href: '/about',
-    icon: 'tabler-info-circle'
+    label: 'Produk',
+    href: '/admin/products',
+    icon: 'tabler-coffee'
+  },
+  {
+    label: 'Pengaturan',
+    href: '/admin/settings',
+    icon: 'tabler-settings'
   }
 ]
 
