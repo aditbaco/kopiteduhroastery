@@ -39,8 +39,36 @@ export const generateMetadata = async (props: {
 
   const name = pickLocalized(lang, product.name, product.nameEn)
   const desc = pickLocalized(lang, product.shortDesc ?? '', product.shortDescEn)
+  const heroSrc = productImage({ heroImage: product.heroImage, name, species: product.species })
 
-  return { title: `${name} — Kopi Teduh Roastery`, description: desc }
+  return {
+    title: `${name} — Kopi Teduh Roastery`,
+    description: desc,
+    openGraph: {
+      title: `${name} — Kopi Teduh Roastery`,
+      description: desc,
+      url: `/${lang}/kopi/${slug}`,
+      images: [
+        {
+          url: typeof heroSrc === 'string' ? heroSrc : (heroSrc as any).src || '',
+          width: 800,
+          height: 800,
+          alt: name,
+        },
+      ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${name} — Kopi Teduh Roastery`,
+      description: desc,
+      images: [typeof heroSrc === 'string' ? heroSrc : (heroSrc as any).src || ''],
+    },
+    alternates: {
+      canonical: `/${lang}/kopi/${slug}`,
+      languages: Object.fromEntries(LANGS.map(l => [l, `/${l}/kopi/${slug}`]))
+    }
+  }
 }
 
 const ProductPage = async (props: { params: Promise<{ lang: Lang; slug: string }> }) => {

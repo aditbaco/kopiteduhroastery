@@ -52,6 +52,26 @@ export const generateMetadata = async (props: { params: Promise<{ lang: string }
   return {
     title: dict.meta.title,
     description: dict.meta.description,
+    openGraph: {
+      title: dict.meta.title,
+      description: dict.meta.description,
+      siteName: 'Kopi Teduh Roastery',
+      images: [
+        {
+          url: '/apple-icon.png',
+          width: 180,
+          height: 180,
+        },
+      ],
+      locale: lang === 'id' ? 'id_ID' : 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: dict.meta.title,
+      description: dict.meta.description,
+      images: ['/apple-icon.png'],
+    },
 
     // Tells crawlers the two versions are translations of each other rather
     // than duplicate content.

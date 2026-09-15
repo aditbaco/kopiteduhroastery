@@ -2,6 +2,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
+import type { Metadata } from 'next'
+
 // Type Imports
 import type { Lang } from '@/dictionaries'
 
@@ -16,6 +18,19 @@ import ProductCard from '@/components/storefront/ProductCard'
 
 // Util Imports
 import { DECOR } from '@/utils/images'
+
+export const generateMetadata = async (props: { params: Promise<{ lang: Lang }> }): Promise<Metadata> => {
+  const { lang } = await props.params
+
+  return {
+    alternates: {
+      canonical: `/${lang}`
+    },
+    openGraph: {
+      url: `/${lang}`
+    }
+  }
+}
 
 const HomePage = async (props: { params: Promise<{ lang: Lang }> }) => {
   const { lang } = await props.params

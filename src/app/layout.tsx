@@ -24,7 +24,28 @@ import '@assets/iconify-icons/generated-icons.css'
 
 export const metadata = {
   title: 'Kopi Teduh Roastery',
-  description: 'Roastery kopi spesialti dari Poso, Sulawesi Tengah.'
+  description: 'Roastery kopi spesialti dari Poso, Sulawesi Tengah.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  openGraph: {
+    title: 'Kopi Teduh Roastery',
+    description: 'Roastery kopi spesialti dari Poso, Sulawesi Tengah.',
+    siteName: 'Kopi Teduh Roastery',
+    images: [
+      {
+        url: '/apple-icon.png',
+        width: 180,
+        height: 180,
+      },
+    ],
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kopi Teduh Roastery',
+    description: 'Roastery kopi spesialti dari Poso, Sulawesi Tengah.',
+    images: ['/apple-icon.png'],
+  },
 }
 
 const RootLayout = (props: ChildrenType) => {
