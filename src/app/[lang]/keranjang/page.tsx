@@ -1,8 +1,25 @@
 // Type Imports
+import type { Metadata } from 'next'
+
 import type { Lang } from '@/dictionaries'
 
 // Dictionary Imports
 import { getDictionary } from '@/dictionaries'
+
+
+
+export const generateMetadata = async (props: { params: Promise<{ lang: Lang }> }): Promise<Metadata> => {
+  const { lang } = await props.params
+
+  return {
+    alternates: {
+      canonical: `/${lang}/keranjang`
+    },
+    openGraph: {
+      url: `/${lang}/keranjang`
+    }
+  }
+}
 
 // Component Imports
 import CartView from '@/components/storefront/CartView'
